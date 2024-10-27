@@ -848,7 +848,7 @@
           .replaceAll(/<\/li>(?:\n{2,}|\s*$)/g, "</li></ul>\n\n")
           .replaceAll(/(?:^[\s\n]*|\n{2,})(?<start>[^<\s\n])/g, (_, start) => `\n\n<p>${ start }`)
           .replaceAll(/(?<end>[^>\s\n])(?:\n{2,}|[\s\n]*$)/g, (_, end) => `${ end }</p>`)
-          .replaceAll(/(?:\[(?<text>[^\]]+)\]\()?(?<url>https?:\/\/[-a-z0-9@:%\._\+~#=]+\b[-a-z0-9;\(\)@:%_\+\.~#\?&\/=]*?)(?:\)|\s|$)/ig, (_, text, url) => `<a href="${ url }">${ text ?? url }</a>`)
+          .replaceAll(/(?:\[(?<text>[^\]]+)\]\()?(?<url>https?:\/\/[\-a-z0-9@:%\._\+~#=]+\b[\-a-z0-9;@:%_\+\.~#\?&\/=]*)\)?/ig, (_, text, url) => `<a href="${ url }">${ text ?? url }</a>`)
       }
     </script>
   </body>
