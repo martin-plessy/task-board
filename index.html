@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks</title>
+    <style>
+      /* Theme */
+      /* -------------------------------------------------------------------- */
+      @import url("https://fonts.googleapis.com/css2?family=Encode+Sans+Semi+Condensed:wght@500;700&display=swap");
+
+      :root {
+        --FONT_SANS_FAMILY: "Encode Sans Semi Condensed", sans-serif;
+
+        --COLOR_GOLD_1: #ffdd8e;
+        --COLOR_GOLD_2: #f5cc73;
+        --COLOR_NAVY_1: #396487;
+        --COLOR_NAVY_2: #21426a;
+        --COLOR_NAVY_3: #102945;
+        --COLOR_BROWN_1: #584b41;
+        --COLOR_BROWN_2: #352920;
+        --COLOR_WHITE_1: #fdfffc;
+        --COLOR_WHITE_2: #c5cdd6;
+        --COLOR_BLACK_1: #2D2D2D;
+        --COLOR_BLACK_2: #202020;
+
+        --COLOR_RED: #d83a1e;
+        --COLOR_ORANGE: #df7926;
+        --COLOR_YELLOW: #ebe839;
+        --COLOR_GREEN: #75ce21;
+        --COLOR_CYAN: #1ad4bc;
+        --COLOR_BLUE: #2c8fe0;
+        --COLOR_PURPLE: #7f2dcc;
+        --COLOR_PINK: #df2eb2;
+
+        --SPACE_X_1: 8px;
+        --SPACE_Y_1: 6px;
+
+        --SPACE_X_2: 16px;
+        --SPACE_Y_2: 12px;
+
+        color-scheme: dark;
+      }
+
+      :root, .--dark {
+        --COLOR_ACCENT: black;
+        --COLOR_CONTRAST: white;
+
+        --THEME_BACKGROUND: var(--COLOR_BLACK_2);
+        --THEME_TEXT: var(--COLOR_WHITE_1);
+        --THEME_LINK: var(--COLOR_CYAN);
+        --THEME_LINK_VISITED: var(--COLOR_PINK);
+
+        --THEME_COLUMN: linear-gradient(to bottom right, var(--COLOR_BROWN_1), var(--COLOR_BROWN_2));
+        --THEME_TITLE: var(--COLOR_GOLD_1);
+        --THEME_BORDER: color-mix(in srgb, var(--COLOR_BROWN_1), var(--COLOR_BROWN_2));
+
+        --THEME_TASK_CARD: color-mix(in srgb, var(--COLOR_BLACK_1), var(--COLOR_BLUE) 15%);
+        --THEME_TASK_CARD_HOVER: color-mix(in srgb, var(--COLOR_BLACK_1), var(--COLOR_BLUE) 35%);
+        --THEME_TASK_CARD_DRAGGED: color-mix(in srgb, var(--COLOR_BLACK_1), var(--COLOR_BLUE) 55%);
+      }
+
+      .--light {
+        --COLOR_ACCENT: white;
+        --COLOR_CONTRAST: black;
+
+        --THEME_BACKGROUND: var(--COLOR_WHITE_1);
+        --THEME_TEXT: var(--COLOR_NAVY_2);
+        --THEME_LINK: var(--COLOR_BLUE);
+        --THEME_LINK_VISITED: var(--COLOR_PURPLE);
+
+        --THEME_COLUMN: linear-gradient(to bottom right, var(--COLOR_GOLD_1), var(--COLOR_GOLD_2));
+        --THEME_TITLE: var(--COLOR_BROWN_1);
+        --THEME_BORDER: color-mix(in srgb, var(--COLOR_GOLD_1), var(--COLOR_GOLD_2));
+
+        --THEME_TASK_CARD: color-mix(in srgb, var(--COLOR_WHITE_1), var(--COLOR_BLUE) 15%);
+        --THEME_TASK_CARD_HOVER: color-mix(in srgb, var(--COLOR_WHITE_1), var(--COLOR_BLUE) 35%);
+        --THEME_TASK_CARD_DRAGGED: color-mix(in srgb, var(--COLOR_WHITE_1), var(--COLOR_BLUE) 55%);
+      }
+
+      .--red    { --COLOR_ACCENT: var(--COLOR_RED);    --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+      .--orange { --COLOR_ACCENT: var(--COLOR_ORANGE); --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+      .--yellow { --COLOR_ACCENT: var(--COLOR_YELLOW); --COLOR_CONTRAST: var(--COLOR_BLACK_2); }
+      .--green  { --COLOR_ACCENT: var(--COLOR_GREEN);  --COLOR_CONTRAST: var(--COLOR_BLACK_2); }
+      .--cyan   { --COLOR_ACCENT: var(--COLOR_CYAN);   --COLOR_CONTRAST: var(--COLOR_BLACK_2); }
+      .--blue   { --COLOR_ACCENT: var(--COLOR_BLUE);   --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+      .--purple { --COLOR_ACCENT: var(--COLOR_PURPLE); --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+      .--pink   { --COLOR_ACCENT: var(--COLOR_PINK);   --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+
+      /* Reset */
+      /* -------------------------------------------------------------------- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        background: none;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-weight: inherit;
+        font-style: inherit;
+        font-size: inherit;
+        text-align: inherit;
+        line-height: 1.4em;
+        color: inherit;
+      }
+
+      html {
+        height: 100%;
+      }
+
+      body {
+        min-height: 100%;
+        text-align: left;
+        font-family: var(--FONT_SANS_FAMILY);
+        font-size: 14px;
+        font-weight: 500;
+        font-style: normal;
+        text-decoration: none;
+        background: var(--THEME_BACKGROUND);
+        color: var(--THEME_TEXT);
+      }
+
+      /* Board */
+      /* -------------------------------------------------------------------- */
+      table {
+        min-height: 100vh;
+        border-collapse: collapse;
+      }
+
+      table thead {
+        background: var(--THEME_COLUMN);
+        color: var(--THEME_TITLE);
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      table tr {}
+
+      table th, table td {
+        width: 20vw;
+        min-width: 240px;
+        vertical-align: top;
+      }
+
+      table th {
+        padding: var(--SPACE_Y_1) var(--SPACE_X_1);
+        text-transform: capitalize;
+      }
+
+      table th:not(:first-child), table td:not(:first-child) {
+        border-left: 2px solid var(--THEME_BORDER);
+      }
+
+      table td {
+        padding-bottom: 50vh;
+      }
+
+      .Task, .--dragging .Task:hover {
+        border-radius: 5px;
+        background: var(--THEME_TASK_CARD);
+        margin: var(--SPACE_Y_1) var(--SPACE_X_1);
+
+        position: relative;
+        cursor: grab;
+      }
+
+      .--dragging * {
+        cursor: grabbing !important;
+      }
+
+      .Task:hover {
+        background: var(--THEME_TASK_CARD_HOVER);
+      }
+
+      .Task:active {
+        background: var(--THEME_TASK_CARD_DRAGGED) !important;
+        opacity: 0.5;
+      }
+
+      .Task_due {
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+        padding: var(--SPACE_Y_1) var(--SPACE_X_2);
+        border-top: 5px solid var(--COLOR_ACCENT);
+        background: color-mix(in srgb, var(--COLOR_CONTRAST), var(--COLOR_ACCENT) 15%);
+        color: var(--COLOR_ACCENT);
+        text-align: right;
+      }
+
+      .Task_due::before {
+        content: "Due ";
+      }
+
+      .Task_due.--over       { --COLOR_ACCENT: var(--COLOR_RED);    --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+      .Task_due.--soon       { --COLOR_ACCENT: var(--COLOR_ORANGE); --COLOR_CONTRAST: var(--COLOR_WHITE_1); }
+      .Task_due.--later      { --COLOR_ACCENT: var(--COLOR_YELLOW); --COLOR_CONTRAST: var(--COLOR_BLACK_2); }
+      .Task_due.--eventually { --COLOR_ACCENT: var(--COLOR_GREEN);  --COLOR_CONTRAST: var(--COLOR_BLACK_2); }
+
+      .Task_summary {
+        padding: var(--SPACE_Y_2) var(--SPACE_X_2);
+      }
+
+      .Task_summary h1 { font-size: 1.5em; }
+      .Task_summary h2 { font-size: 1.4em; }
+      .Task_summary h3 { font-size: 1.3em; }
+      .Task_summary h4 { font-size: 1.2em; }
+      .Task_summary h5 { font-size: 1.1em; }
+
+      .Task_summary h1:not(:first-child),
+      .Task_summary h2:not(:first-child),
+      .Task_summary h3:not(:first-child),
+      .Task_summary h4:not(:first-child),
+      .Task_summary h5:not(:first-child),
+      .Task_summary p:not(:first-child),
+      .Task_summary ul:not(:first-child) {
+        margin-top: var(--SPACE_Y_1);
+      }
+
+      .Task_summary ul {
+        padding-left: 1.2em;
+      }
+
+      .Task_summary a         { color: var(--THEME_LINK);   }
+      .Task_summary a:visited { color: var(--THEME_LINK_VISITED); }
+
+      .Task_tags {
+        padding: 0 var(--SPACE_X_2) calc(var(--SPACE_Y_2) - 0.25em) var(--SPACE_X_2);
+      }
+
+      .Task_tag {
+        text-transform: lowercase;
+        display: inline-block;
+        padding: var(--SPACE_Y_1) var(--SPACE_X_1);
+        background-color: var(--COLOR_ACCENT);
+        background-image: linear-gradient(to bottom right in hsl, hsl(from var(--COLOR_ACCENT) calc(h - 15) s l), hsl(from var(--COLOR_ACCENT) calc(h + 15) s l));
+        border-radius: 1em;
+        font-size: 0.9em;
+        line-height: 1em;
+        color: var(--COLOR_CONTRAST);
+        margin-right: 0.25em;
+        margin-bottom: 0.25em;
+      }
+
+      .Task_before, .Task_after {
+        display: none;
+      }
+
+      .--dragging .Task_before {
+        display: block;
+        position: absolute;
+        top: -5px;
+        left: calc(-1 * var(--SPACE_X_1));
+        right: calc(-1 * var(--SPACE_X_1));
+        bottom: 50%;
+      }
+
+      .--dragging .Task_before:hover {
+        box-shadow: inset 0 5px 0 0 var(--COLOR_BLUE);
+      }
+
+      .--dragging .Task_after {
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: calc(-1 * var(--SPACE_X_1));
+        right: calc(-1 * var(--SPACE_X_1));
+        bottom: -5px;
+      }
+
+      .--dragging .Task_after:hover {
+        box-shadow: inset 0 -5px 0 0 var(--COLOR_BLUE);
+      }
+
+      .--dragging td:hover:not(:has(:hover)) {
+        background: var(--COLOR_BLUE);
+      }
+
+      /* Slide panel */
+      /* -------------------------------------------------------------------- */
+      .SlidePanel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 240px;
+        padding: var(--SPACE_Y_2) var(--SPACE_X_2);
+        z-index: 1000;
+        background: black;
+        color: var(--COLOR_WHITE_1);
+
+        display: flex;
+        flex-direction: column;
+        gap: var(--SPACE_Y_2);
+
+        translate: 100%;
+        transition: translate ease-in-out 0.3s;
+      }
+
+      .SlidePanel:focus-within {
+        translate: 0;
+      }
+
+      .SlidePanel > .buttonGroup {
+        display: flex;
+        flex-direction: row;
+        gap: var(--SPACE_X_1);
+      }
+
+      /* Toolbar */
+      /* -------------------------------------------------------------------- */
+      .Toolbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 500;
+        padding: var(--SPACE_Y_2) var(--SPACE_X_2);
+        text-align: center;
+        background: black;
+        color: var(--COLOR_WHITE_1);
+        opacity: 0.25;
+        transition: opacity ease-in-out 0.3s;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: var(--SPACE_X_1);
+      }
+
+      .Toolbar > * {
+        width: fit-content;
+        flex-grow: 0;
+      }
+
+      .Toolbar:hover, .Toolbar:focus-within {
+        opacity: 1;
+      }
+
+      /* Toolbar spacer */
+      .Toolbar > .spacer {
+        margin-left: var(--SPACE_X_2);
+      }
+
+      /* Toolbar filter */
+      .Toolbar > .filter {
+        max-width: 240px;
+        text-align: left;
+      }
+
+      /* Form fields */
+      /* -------------------------------------------------------------------- */
+      label {
+        display: block;
+      }
+
+      label:has(textarea) {
+        flex-grow: 1;
+      }
+
+      label span {
+        display: block;
+        padding: 0 var(--SPACE_X_1) var(--SPACE_Y_1);
+      }
+
+      input[type="text"], input[type="date"], input[type="file"], textarea {
+        display: block;
+        width: 100%;
+        padding: var(--SPACE_Y_1) var(--SPACE_X_1);
+        border-radius: 5px;
+
+        background: black;
+        color: var(--COLOR_WHITE_1);
+        border: 2px solid var(--COLOR_WHITE_2);
+      }
+
+      input[type="date"], input[type="file"] {
+        cursor: pointer;
+      }
+
+      input[type="text"] {
+      }
+
+      textarea {
+        height: calc(100% - 2 * var(--SPACE_Y_2));
+        resize: none;
+      }
+
+      input[type="text"]:focus, input[type="date"]:focus, input[type="file"]:focus, textarea:focus {
+        border-color: var(--COLOR_BLUE);
+        background: var(--COLOR_BLACK_1);
+      }
+
+      /* Buttons */
+      /* -------------------------------------------------------------------- */
+      button {
+        --COLOR_ACCENT: var(--COLOR_WHITE_1);
+
+        display: block;
+        width: 100%;
+        padding: var(--SPACE_Y_1) var(--SPACE_X_1);
+        text-align: center;
+        cursor: pointer;
+        border-radius: 5px;
+        border: 2px solid hsl(from var(--COLOR_ACCENT) calc(h + 7) s calc(l - 15));
+        background: black;
+        color: hsl(from var(--COLOR_ACCENT) calc(h - 7) s calc(l + 15));
+      }
+
+      button:hover, button:focus {
+        background: var(--COLOR_BLACK_1);
+      }
+
+      /* Button icon */
+      button > .icon {
+        display: inline-block;
+        fill: hsl(from var(--COLOR_ACCENT) calc(h - 7) s calc(l + 15));
+        vertical-align: text-bottom;
+      }
+
+      /* Button text */
+      button > .icon:has(+ .text) {
+        margin-right: var(--SPACE_X_1);
+      }
+
+      /* Button tooltip */
+      button {
+        position: relative;
+      }
+
+      button > .tooltip {
+        position: absolute;
+        bottom: calc(100% + var(--SPACE_Y_1));
+        left: 50%;
+        translate: -50%;
+        width: max-content;
+
+        background: black;
+        padding: var(--SPACE_Y_1) var(--SPACE_X_1);
+        border-radius: 5px;
+
+        display: none;
+      }
+
+      button:hover > .tooltip {
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="--dark">
+    <main id="vueApp">
+
+      <table v-bind:class="{ '--dragging': dragged }">
+        <thead>
+          <tr>
+            <th v-for="(_, col, i) of tasks">{{ col }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td v-for="(_, col) of tasks" v-on:mouseup="landDrag(col, tasks[col].length)">
+              <template v-for="(task, i) of tasks[col]">
+                <task-view
+                  v-show="tagFilter == '' || task.tags.includes(tagFilter)"
+                  v-bind:task="task"
+                  v-on:mousedown="e => startDrag(col, i, e)"
+                  v-on:mouseup.stop="e => landDrag(col, i + (e.target.classList.contains('Task_before') ? 0 : 1))"
+                  v-on:dblclick="edit(task)" />
+              </template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="Toolbar">
+        <input class="filter" type="text" placeholder="Tag filter..." v-model="filter" />
+        <button v-on:click="toggleTheme" class="--pink spacer">
+          <svg v-show="!lightTheme" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- Sun -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+          </svg>
+          <svg v-show="lightTheme" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- Moon -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z"></path>
+          </svg>
+          <span class="tooltip">Theme: light / dark</span>
+        </button>
+        <button v-on:click="newTask" class="--green spacer">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- Add -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"></path>
+          </svg>
+          <span class="tooltip">New task</span>
+        </button>
+        <button v-on:click="importTasks" class="--cyan spacer">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- Import -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
+            <path d="M11.78 4.72a.749.749 0 1 1-1.06 1.06L8.75 3.811V9.5a.75.75 0 0 1-1.5 0V3.811L5.28 5.78a.749.749 0 1 1-1.06-1.06l3.25-3.25a.749.749 0 0 1 1.06 0l3.25 3.25Z"></path>
+          </svg>
+          <span class="tooltip">Import from file or JSON</span>
+        </button>
+        <button v-on:click="export_copy" class="--yellow">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- Clipboard -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M12.212 3.02a1.753 1.753 0 0 0-2.478.003l-5.83 5.83a3.007 3.007 0 0 0-.88 2.127c0 .795.315 1.551.88 2.116.567.567 1.333.89 2.126.89.79 0 1.548-.321 2.116-.89l5.48-5.48a.75.75 0 0 1 1.061 1.06l-5.48 5.48a4.492 4.492 0 0 1-3.177 1.33c-1.2 0-2.345-.487-3.187-1.33a4.483 4.483 0 0 1-1.32-3.177c0-1.195.475-2.341 1.32-3.186l5.83-5.83a3.25 3.25 0 0 1 5.553 2.297c0 .863-.343 1.691-.953 2.301L7.439 12.39c-.375.377-.884.59-1.416.593a1.998 1.998 0 0 1-1.412-.593 1.992 1.992 0 0 1 0-2.828l5.48-5.48a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-5.48 5.48a.492.492 0 0 0 0 .707.499.499 0 0 0 .352.154.51.51 0 0 0 .356-.154l5.833-5.827a1.755 1.755 0 0 0 0-2.481Z"></path>
+          </svg>
+          <span class="tooltip">Export to clipboard (JSON)</span>
+        </button>
+        <button v-on:click="export_file" class="--blue">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- File -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M2 1.75C2 .784 2.784 0 3.75 0h5.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v8.586A1.75 1.75 0 0 1 12.25 15h-7a.75.75 0 0 1 0-1.5h7a.25.25 0 0 0 .25-.25V6H9.75A1.75 1.75 0 0 1 8 4.25V1.5H3.75a.25.25 0 0 0-.25.25V4.5a.75.75 0 0 1-1.5 0Zm-.5 10.487v1.013a.75.75 0 0 1-1.5 0v-1.012a3.748 3.748 0 0 1 3.77-3.749L4 8.49V6.573a.25.25 0 0 1 .42-.183l2.883 2.678a.25.25 0 0 1 0 .366L4.42 12.111a.25.25 0 0 1-.42-.183V9.99l-.238-.003a2.25 2.25 0 0 0-2.262 2.25Zm8-10.675V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path>
+          </svg>
+          <span class="tooltip">Export to file (JSON)</span>
+        </button>
+        <button v-on:click="purgeLastCol" class="--orange spacer">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <!-- Trash -->
+            <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+            <path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"></path>
+          </svg>
+          <span class="tooltip">Purge last column</span>
+        </button>
+      </div>
+
+      <div class="SlidePanel">
+        <label> <span>Due date (optional):</span>    <input v-model="editedDue" type="date" />     </label>
+        <label> <span>Summary:</span>                <textarea ref="summaryField" v-model="editedSummary"></textarea> </label>
+        <label> <span>Tags (comma-spearated):</span> <input v-model="editedTags" type="text" />    </label>
+        <div class="buttonGroup">
+          <button v-on:click="saveEdits" class="--green">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+              <!-- Check -->
+              <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+              <path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.5 2.75v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25H2.75a.25.25 0 0 0-.25.25Zm9.28 3.53-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l1.47 1.47 3.97-3.97a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path>
+            </svg>
+            <span class="text">Save</span>
+          </button>
+          <button v-on:click="deleteEdited" class="--orange">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+              <!-- Delete -->
+              <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+              <path d="M13.25 1c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1ZM2.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm8.5 6.25h-6.5a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5Z"></path>
+            </svg>
+            <span class="text">Delete</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="SlidePanel">
+        <label> <span>Import files (optional):</span> <input ref="importFilesField" type="file" multiple /> </label>
+        <label> <span>Additional JSON (optional):</span> <textarea v-model="importJson" /> </textarea> </label>
+        <div class="buttonGroup">
+          <button v-on:click="import_append" class="--cyan">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+              <!-- Add -->
+              <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+              <path d="M2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25V2.75C1 1.784 1.784 1 2.75 1Zm10.5 1.5H2.75a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"></path>
+            </svg>
+            <span class="text">Add</span>
+          </button>
+          <button v-on:click="import_override" class="--orange">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+              <!-- Trash -->
+              <!-- https://github.com/primer/octicons/tree/a46108db357b02d91c5a07950bc9b1ef4896dcbe Copyright (c) 2024 GitHub Inc. MIT License -->
+              <path d="M11 1.75V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75ZM4.496 6.675l.66 6.6a.25.25 0 0 0 .249.225h5.19a.25.25 0 0 0 .249-.225l.66-6.6a.75.75 0 0 1 1.492.149l-.66 6.6A1.748 1.748 0 0 1 10.595 15h-5.19a1.75 1.75 0 0 1-1.741-1.575l-.66-6.6a.75.75 0 1 1 1.492-.15ZM6.5 1.75V3h3V1.75a.25.25 0 0 0-.25-.25h-2.5a.25.25 0 0 0-.25.25Z"></path>
+            </svg>
+            <span class="text">Override</span>
+          </button>
+        </div>
+      </div>
+
+    </main>
+    <!-- <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.js"></script> -->
+    <!-- <script src="https://unpkg.com/vue@3.5.12/dist/vue.global.prod.js"></script> -->
+    <!-- <script src="./vue.global.js"></script> -->
+    <script src="./vue.global.prod.js"></script>
+    <script>
+      const DAY = 1000 * 60 * 60 * 24
+      const WEEK = 7 * DAY
+      const MONTH = 30 * DAY
+      const YEAR = 365 * DAY
+
+      const COLORS = ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "pink"]
+
+      window.addEventListener("load", function main() {
+        Vue.createApp(App)
+           .component("TaskView", TaskView)
+           .mount("#vueApp")
+      })
+
+      const App = {
+        data() {
+          return {
+            tasks: loadData().tasks,
+            dragged: null,
+            edited: null,
+            editedDue: null,
+            editedSummary: null,
+            editedTags: null,
+            importJson: "",
+            lightTheme: false,
+            filter: "",
+          }
+        },
+        computed: {
+          tagFilter() {
+            return this.filter.trim()
+          }
+        },
+        watch: {
+          tasks: {
+            deep: true,
+            handler(_, newValue) {
+              saveData({ tasks: newValue })
+            }
+          }
+        },
+        methods: {
+          toggleTheme() {
+            document.body.classList.toggle("--dark")
+            document.body.classList.toggle("--light")
+            this.lightTheme = !this.lightTheme
+          },
+          newTask() {
+            let t = { id: Date.now(), due: null, summary: "", tags: [] }
+            this.tasks[Object.keys(this.tasks)[0]].push(t)
+            this.edit(t)
+          },
+          importTasks() {
+            this.importJson = ""
+            this.$refs.importFilesField.value = ""
+
+            this.$refs.importFilesField.focus()
+          },
+          async import_append(e) {
+            await this.import_(e)
+          },
+          async import_override(e) {
+            if (confirm("Destroy all existing tasks and replace them with the imported content?")) {
+              this.tasks = {}
+              await this.import_(e)
+            }
+          },
+          async import_(e) {
+            for (let f of this.$refs.importFilesField.files)
+              this._appendTasks(JSON.parse(await f.text()))
+
+            try {
+              this._appendTasks(JSON.parse(this.importJson))
+            } catch (e) {
+              console.error(e)
+            }
+
+            e.currentTarget.blur()
+          },
+          _appendTasks(newTasks) {
+            for (let [col, tasks] of Object.entries(newTasks)) {
+              if (this.tasks[col]) {
+                this.tasks[col].push(...tasks)
+              } else {
+                this.tasks[col] = tasks
+              }
+            }
+          },
+          async export_copy() {
+            await navigator.clipboard.writeText(JSON.stringify(this.tasks, undefined, 2))
+          },
+          export_file() {
+            let file = new File([JSON.stringify(this.tasks, undefined, 2)], "tasks.json", { type: "application/json" })
+            let url = URL.createObjectURL(file)
+            window.location.assign(url)
+            URL.revokeObjectURL(url)
+          },
+          edit(task) {
+            this.edited = task
+            this.editedDue = task.due ? new Date(task.due).toISOString().substr(0, 10) : null
+            this.editedSummary = task.summary
+            this.editedTags = task.tags.join(", ")
+
+            this.$refs.summaryField.focus()
+          },
+          saveEdits(e) {
+            if (this.edited && (this.editedDue != this.edited.due || this.editedSummary != this.edited.summary || this.editedTags != this.edited.tags.join(", "))) {
+              this.edited.due = new Date(this.editedDue).getTime()
+              this.edited.summary = this.editedSummary
+              this.edited.tags = this.editedTags.split(",").map(tag => tag.trim()).filter(tag => tag)
+            }
+
+            this.edited = null
+
+            e.currentTarget.blur()
+          },
+          deleteEdited(e) {
+            searchLoop: for (let col in this.tasks) {
+              for (let i = 0; i < this.tasks[col].length; ++i) {
+                if (this.tasks[col][i] == this.edited) {
+                  this.tasks[col].splice(i, 1)
+                  break searchLoop
+                }
+              }
+            }
+
+            this.edited = null
+
+            e.currentTarget.blur()
+          },
+          purgeLastCol() {
+            let keys = Object.keys(this.tasks)
+            this.tasks[keys[keys.length - 1]] = []
+          },
+          startDrag(columnName, i, e) {
+            if (e.target.tagName.toUpperCase() == "A") return
+            else e.preventDefault()
+
+            this.dragged = [columnName, i]
+          },
+          landDrag(columnName, i) {
+            if (!this.dragged) return
+
+            if ((i != this.dragged[1] && i - 1 != this.dragged[1]) || columnName != this.dragged[0]) {
+              const draggedTask = this.tasks[this.dragged[0]].splice(this.dragged[1], 1)[0]
+              if (this.dragged[1] < i && columnName == this.dragged[0]) --i
+              this.tasks[columnName].splice(i, 0, draggedTask)
+            }
+
+            this.dragged = null
+          },
+          cancelDrag() {
+            this.dragged = null
+          }
+        },
+        mounted() {
+          document.addEventListener("mouseup", this.cancelDrag)
+        },
+        unmounted() {
+          document.removeEventListener("mouseup", this.cancelDrag)
+        }
+      }
+
+      const TaskView = {
+        props: ["task"],
+        template: /* html */ `
+          <div class="Task">
+            <div v-bind:class="{'Task_due': true, ['--' + dueClass]: true }" v-if="task.due">{{ dueText }}</div>
+            <div class="Task_summary" v-html="summaryHtml"></div>
+            <div class="Task_tags" v-if="task.tags.length">
+              <span v-bind:class="{ 'Task_tag': true, ['--' + tagClass(tag)]: true }" v-for="tag of task.tags">{{ tag }}</span>
+            </div>
+            <div class="Task_before"></div>
+            <div class="Task_after"></div>
+          </div>
+        `,
+        computed: {
+          dueClass() {
+            const delta = this.task.due - Date.now()
+
+            return delta < 0         ? "over"
+                 : delta < 2 * WEEK  ? "soon"
+                 : delta < 2 * MONTH ? "later"
+                 :                     "eventually"
+          },
+          dueText() {
+            const delta = this.task.due - Date.now()
+
+            return delta < 0         ? "past"
+                 : delta <     DAY   ? "today"
+                 : delta < 2 * DAY   ? "tomorrow"
+                 : delta <     WEEK  ? `in ${ Math.floor(delta / DAY) } days`
+                 : delta < 2 * WEEK  ? "next week"
+                 : delta <     MONTH ? `in ${ Math.floor(delta / WEEK) } weeks`
+                 : delta < 2 * MONTH ? "next month"
+                 : delta <     YEAR  ? `in ${ Math.floor(delta / MONTH) } months`
+                 : delta < 2 * YEAR  ? "next year"
+                 :                     `in ${ Math.floor(delta / YEAR) } years`
+          },
+          summaryHtml() {
+            return miniMarkdown(this.task.summary)
+          }
+        },
+        methods: {
+          tagClass(tag) {
+            let hash = 0
+            for (let i = 0; i < tag.length; ++i) {
+              hash = Math.imul(31, hash) + tag.charCodeAt(i) | 0
+            }
+
+            return COLORS[Math.abs(hash) % COLORS.length]
+          }
+        }
+      }
+
+      /**
+       * @typedef Task
+       * @property {number} id
+       * @property {number|null} due
+       * @property {string} summary
+       * @property {string[]} tags
+       */
+
+      /**
+       * @typedef {Record<string, Task[]} Tasks
+       */
+
+      /**
+       * @typedef {{ tasks: Tasks }} Model
+       */
+
+      /**
+       * @returns {Model}
+       */
+      function loadData() {
+        return {
+          tasks: JSON.parse(localStorage.getItem("martin.tasks")) ?? { wannabe: [], blocked: [], pending: [], doing: [], done: [] }
+        }
+      }
+
+      /**
+       * @param {Readonly<Model>} model
+       * @returns {void}
+       */
+      function saveData(model) {
+        localStorage.setItem("martin.tasks", JSON.stringify(model.tasks))
+      }
+
+      /**
+       * @param {string} md
+       * @returns {string}
+       */
+      function miniMarkdown(md) {
+        return md
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll(/^(?<level>#+)\s(?<line>.+)/gm, (_, level, line) => `<h${ level.length }>${ line }</h${ level.length }>`)
+          .replaceAll(/^[\*\-]\s(?<line>.+)/gm, (_, line) => `<li>${ line }</li>`)
+          .replaceAll(/(?:^\s*|\n{2,})<li>/g, "\n\n<ul><li>")
+          .replaceAll(/<\/li>(?:\n{2,}|\s*$)/g, "</li></ul>\n\n")
+          .replaceAll(/(?:^[\s\n]*|\n{2,})(?<start>[^<\s\n])/g, (_, start) => `\n\n<p>${ start }`)
+          .replaceAll(/(?<end>[^>\s\n])(?:\n{2,}|[\s\n]*$)/g, (_, end) => `${ end }</p>`)
+          .replaceAll(/(?:\[(?<text>[^\]]+)\]\()?(?<url>https?:\/\/[-a-z0-9@:%\._\+~#=]+\b[-a-z0-9;\(\)@:%_\+\.~#\?&\/=]*?)(?:\)|\s|$)/ig, (_, text, url) => `<a href="${ url }">${ text ?? url }</a>`)
+      }
+    </script>
+  </body>
+</html>
